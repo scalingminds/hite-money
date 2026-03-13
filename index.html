@@ -20,8 +20,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 .si{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
 .si.h{background:var(--gl)}.si.c{background:var(--al)}.si.d{background:var(--rl)}
 .st h2{font-size:16px;font-weight:600;margin-bottom:2px}.st p{font-size:13px;color:var(--td);line-height:1.4}
-.ms{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-@media(max-width:800px){.ms{grid-template-columns:repeat(2,1fr)}}
+.ms{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:900px){.ms{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.ms{grid-template-columns:repeat(2,1fr)}}
 .mc{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.03)}
 .ml{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--tm);font-weight:500;margin-bottom:6px}
 .mv{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1}
@@ -83,8 +84,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 <div class="ms">
 <div class="mc"><div class="ml">Total Liquid</div><div class="mv fl" id="mL">—</div><div class="md neu" id="dL"></div></div>
 <div class="mc"><div class="ml">Cushion (after $80K)</div><div class="mv fl" id="mC">—</div><div class="md neu" id="dC"></div></div>
-<div class="mc"><div class="ml">Runway</div><div class="mv fl" id="mR">—</div><div class="md neu" id="dR"></div></div>
-<div class="mc"><div class="ml">Pipeline</div><div class="mv fl" id="mP">—</div><div class="md neu" id="dP"></div></div>
+<div class="mc"><div class="ml">Cash Runway</div><div class="mv fl" id="mR">—</div><div class="md neu" id="dR"></div></div>
+<div class="mc"><div class="ml">Full Runway</div><div class="mv fl" id="mFR">—</div><div class="md neu" id="dFR"></div></div>
+<div class="mc"><div class="ml">AR (incoming)</div><div class="mv fl" id="mP">—</div><div class="md neu" id="dP"></div></div>
 </div>
 <div class="dp" id="dpn" style="display:none"><div class="ch"><span class="ct">This Week vs Last Week</span><span class="cb" id="dd" style="background:var(--gol);color:var(--go)"></span></div><div class="dg" id="dgr"></div></div>
 <div class="tabs"><button class="tb on" onclick="tab('ch')">Charts</button><button class="tb" onclick="tab('en')">Enter Data</button><button class="tb" onclick="tab('hi')">History</button></div>
@@ -200,22 +202,30 @@ function render(){renderStatus();renderMetrics();renderDeltas();renderCharts();r
 
 function renderStatus(){
   document.getElementById('sb').style.display='flex';
-  var cash=latest.need80k||0,weeks=cash>0?Math.floor(cash/4000):0;
+  var cash=latest.need80k||0,fullPool=cash+(latest.ar2024||0);
+  var weeks=cash>0?Math.floor(cash/4000):0;
+  var fullWeeks=fullPool>0?Math.floor(fullPool/4000):0;
   var i=document.getElementById('si'),h=document.getElementById('sh'),p=document.getElementById('sp');
-  if(weeks>=14){i.className='si h';i.textContent='✓';h.textContent='Healthy — '+weeks+' weeks runway';h.style.color='var(--gn)';p.textContent='Cash position is solid. Stay consistent with pipeline activity.';}
-  else if(weeks>=8){i.className='si c';i.textContent='!';h.textContent='Heads Up — '+weeks+' weeks runway';h.style.color='var(--am)';p.textContent='Getting into your sales-to-cash window. Keep BD top of priority.';}
-  else{i.className='si d';i.textContent='!!';h.textContent='Action Required — '+weeks+' weeks runway';h.style.color='var(--rd)';p.textContent='Below safe runway. Prioritize business development over everything else.';}
+  if(weeks>=14){i.className='si h';i.textContent='✓';h.textContent='Healthy — '+weeks+'w cash / '+fullWeeks+'w full runway';h.style.color='var(--gn)';p.textContent='Cash position is solid. Stay consistent with pipeline activity.';}
+  else if(weeks>=8){i.className='si c';i.textContent='!';h.textContent='Heads Up — '+weeks+'w cash / '+fullWeeks+'w full runway';h.style.color='var(--am)';p.textContent='Getting into your sales-to-cash window. Keep BD top of priority.';}
+  else{i.className='si d';i.textContent='!!';h.textContent='Action Required — '+weeks+'w cash / '+fullWeeks+'w full runway';h.style.color='var(--rd)';p.textContent='Below safe runway. Prioritize business development over everything else.';}
 }
 
 function renderMetrics(){
   var cash=latest.need80k||0,cush=latest.cushion||0,weeks=cash>0?Math.floor(cash/4000):0;
-  var pipe=(latest.signed||0)+(latest.deposited||0)+(latest.ar2024||0);
+  var ar=latest.ar2024||0;
+  var pipe=ar;
+  var fullPool=cash+ar;
+  var fullWeeks=fullPool>0?Math.floor(fullPool/4000):0;
   setM('mL','dL',cash,prev?(prev.need80k||0):null);
   setM('mC','dC',cush,prev?(prev.cushion||0):null);
   document.getElementById('mR').textContent=weeks+' wks';
   document.getElementById('mR').className='mv '+(weeks>=14?'up':weeks>=8?'wn':'dn');
   if(prev){var pw=(prev.need80k||0)>0?Math.floor((prev.need80k||0)/4000):0;setD('dR',weeks-pw,function(v){return(v>0?'+':'')+v+'w';});}
-  var pp=prev?((prev.signed||0)+(prev.deposited||0)+(prev.ar2024||0)):null;
+  document.getElementById('mFR').textContent=fullWeeks+' wks';
+  document.getElementById('mFR').className='mv '+(fullWeeks>=52?'up':fullWeeks>=26?'wn':'dn');
+  if(prev){var prevFull=(prev.need80k||0)+(prev.ar2024||0);var prevFW=prevFull>0?Math.floor(prevFull/4000):0;setD('dFR',fullWeeks-prevFW,function(v){return(v>0?'+':'')+v+'w';});}
+  var pp=prev?(prev.ar2024||0):null;
   setM('mP','dP',pipe,pp);
 }
 
@@ -235,22 +245,24 @@ function renderDeltas(){
 function renderCharts(){
   if(!hist.length)return;var labels=hist.map(function(r){return fmtS(r.date);});
   var cashD=hist.map(function(r){return r.need80k||0;});
-  var lastC=cashD[cashD.length-1];var pL=[],pD=[];
-  for(var i=1;i<=8;i++){var d=new Date();d.setDate(d.getDate()+i*7);pL.push((d.getMonth()+1)+'/'+d.getDate());pD.push(Math.max(0,lastC-(4000*i)));}
-  var aL=labels.concat(pL),cP=cashD.concat(Array(8).fill(null)),pP=Array(cashD.length-1).fill(null).concat([lastC]).concat(pD);
+  var lastC=cashD[cashD.length-1];
+  var lastFull=lastC+(latest.ar2024||0);
+  var pL=[],pD=[],pF=[];
+  for(var i=1;i<=12;i++){var d=new Date();d.setDate(d.getDate()+i*7);pL.push((d.getMonth()+1)+'/'+d.getDate());pD.push(Math.max(0,lastC-(4000*i)));pF.push(Math.max(0,lastFull-(4000*i)));}
+  var aL=labels.concat(pL),cP=cashD.concat(Array(12).fill(null)),pP=Array(cashD.length-1).fill(null).concat([lastC]).concat(pD),fP=Array(cashD.length-1).fill(null).concat([lastFull]).concat(pF);
 
   dc('c1c');charts.c1c=new Chart(document.getElementById('c1').getContext('2d'),{type:'line',data:{labels:aL,datasets:[
-  {label:'Actual',data:cP,borderColor:'#1a7a52',backgroundColor:'rgba(26,122,82,.06)',fill:true,tension:.3,pointRadius:2,borderWidth:2},
-  {label:'Projected (-$4K/wk)',data:pP,borderColor:'#b83232',borderDash:[5,4],tension:.3,pointRadius:1,borderWidth:1.5,fill:false}
+  {label:'Actual Cash',data:cP,borderColor:'#1a7a52',backgroundColor:'rgba(26,122,82,.06)',fill:true,tension:.3,pointRadius:2,borderWidth:2},
+  {label:'Cash only (-$4K/wk)',data:pP,borderColor:'#b83232',borderDash:[5,4],tension:.3,pointRadius:1,borderWidth:1.5,fill:false},
+  {label:'Cash+AR (-$4K/wk)',data:fP,borderColor:'#2d6ab8',borderDash:[5,4],tension:.3,pointRadius:1,borderWidth:1.5,fill:false}
   ]},options:co()});
   if(cashD.length>=2){var df=cashD[cashD.length-1]-cashD[cashD.length-2];var b=document.getElementById('cBd');b.textContent=(df>=0?'↑ ':'↓ ')+fmtSh(Math.abs(df));b.style.background=df>=0?'var(--gl)':'var(--rl)';b.style.color=df>=0?'var(--gn)':'var(--rd)';}
 
   dc('c2c');charts.c2c=new Chart(document.getElementById('c2').getContext('2d'),{type:'bar',data:{labels:labels,datasets:[
-  {label:'Signed',data:hist.map(function(r){return r.signed||0;}),backgroundColor:'rgba(45,106,184,.7)',borderRadius:2},
   {label:'Deposited',data:hist.map(function(r){return r.deposited||0;}),backgroundColor:'rgba(26,122,82,.6)',borderRadius:2},
   {label:'AR',data:hist.map(function(r){return r.ar2024||0;}),backgroundColor:'rgba(184,134,11,.5)',borderRadius:2}
   ]},options:(function(){var o=co();o.scales.x.stacked=true;o.scales.y.stacked=true;return o;})()});
-  var tp=(latest.signed||0)+(latest.deposited||0)+(latest.ar2024||0);document.getElementById('pBd').textContent=fmtSh(tp)+' total';
+  var tp=(latest.deposited||0)+(latest.ar2024||0);document.getElementById('pBd').textContent=fmtSh(tp)+' total';
 
   dc('c3c');charts.c3c=new Chart(document.getElementById('c3').getContext('2d'),{type:'line',data:{labels:labels,datasets:[
   {label:'Cushion',data:hist.map(function(r){return r.cushion||0;}),borderColor:'#9a7209',backgroundColor:'rgba(184,134,11,.06)',fill:true,tension:.3,pointRadius:2,borderWidth:2},
