@@ -201,6 +201,7 @@
   <div class="kpi"><div class="label">Cash Runway</div><div class="value" id="kpi-runway">—</div></div>
   <div class="kpi"><div class="label">Full Runway</div><div class="value" id="kpi-full">—</div></div>
   <div class="kpi"><div class="label">AR (incoming)</div><div class="value" id="kpi-ar">—</div><div class="delta" id="d-ar"></div></div>
+  <div class="kpi"><div class="label">Net Worth</div><div class="value" id="kpi-networth">—</div><div class="delta" id="d-networth"></div></div>
 </div>
 
 <div class="tabs">
@@ -214,6 +215,7 @@
     <div class="chart-card"><h3>Cash Trajectory</h3><div class="chart-wrap"><canvas id="chart-cash"></canvas></div></div>
     <div class="chart-card"><h3>Revenue Pipeline (Signed / Deposited / AR)</h3><div class="chart-wrap"><canvas id="chart-rev"></canvas></div></div>
     <div class="chart-card"><h3>Cushion Trend</h3><div class="chart-wrap"><canvas id="chart-cushion"></canvas></div></div>
+    <div class="chart-card"><h3>Net Worth Trend</h3><div class="chart-wrap"><canvas id="chart-networth"></canvas></div></div>
   </div>
 </div>
 
@@ -379,6 +381,7 @@ function renderKPIs() {
   const fullRunway = (l.needEightyK + (l.ar || 0)) / 13000;
   $('kpi-full').textContent = isFinite(fullRunway) ? fmt1(fullRunway) + ' mo' : '—';
   $('kpi-ar').textContent = fmt(l.ar);
+  $('kpi-networth').textContent = fmt(l.networth);
 
   const filled = state.history.filter(h => h.asChecking != null || h.bizChecking != null);
   if (filled.length >= 2) {
@@ -387,6 +390,7 @@ function renderKPIs() {
     setDelta('d-liquid', liquid - prevLiquid);
     setDelta('d-cushion', (l.cushion || 0) - (prev.cushion || 0));
     setDelta('d-ar', (l.ar || 0) - (prev.ar || 0));
+    setDelta('d-networth', (l.networth || 0) - (prev.networth || 0));
   }
 }
 
@@ -453,6 +457,11 @@ function renderCharts() {
   drawChart('chart-cushion', 'line', {
     labels,
     datasets: [{ label: 'Cushion', data: cushion, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', fill: true, tension: 0.25 }]
+  });
+  const networth = filled.map(r => r.networth);
+  drawChart('chart-networth', 'line', {
+    labels,
+    datasets: [{ label: 'Net Worth', data: networth, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.12)', fill: true, tension: 0.25 }]
   });
 }
 
