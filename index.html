@@ -216,6 +216,7 @@
     <div class="chart-card"><h3>Revenue Pipeline (Signed / Deposited / AR)</h3><div class="chart-wrap"><canvas id="chart-rev"></canvas></div></div>
     <div class="chart-card"><h3>Cushion Trend</h3><div class="chart-wrap"><canvas id="chart-cushion"></canvas></div></div>
     <div class="chart-card"><h3>Net Worth Trend</h3><div class="chart-wrap"><canvas id="chart-networth"></canvas></div></div>
+    <div class="chart-card"><h3>Runway Projection (Cushion, next 26 weeks)</h3><div class="chart-wrap"><canvas id="chart-runway"></canvas></div></div>
   </div>
 </div>
 
@@ -462,6 +463,36 @@ function renderCharts() {
   drawChart('chart-networth', 'line', {
     labels,
     datasets: [{ label: 'Net Worth', data: networth, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.12)', fill: true, tension: 0.25 }]
+  });
+
+  // Runway Projection: extend Cushion forward 26 weeks at $13K/month burn (~$3,250/wk)
+  const last = filled[filled.length - 1];
+  const lastDate = new Date(last.date);
+  const lastCushion = last.cushion || 0;
+  const weeklyBurn = 13000 / 4.33;
+
+  const projLabels = [];
+  const projData = [];
+  for (let i = 1; i <= 26; i++) {
+    const d = new Date(lastDate);
+    d.setDate(d.getDate() + i * 7);
+    projLabels.push((d.getMonth() + 1) + '/' + d.getDate());
+    projData.push(lastCushion - i * weeklyBurn);
+  }
+  const allLabels = [...labels, ...projLabels];
+  const actualPadded = [...cushion, ...new Array(26).fill(null)];
+  const projPadded = [...new Array(cushion.length - 1).fill(null), lastCushion, ...projData];
+  const refTarget = new Array(allLabels.length).fill(0);
+  const refEmpty = new Array(allLabels.length).fill(-80000);
+
+  drawChart('chart-runway', 'line', {
+    labels: allLabels,
+    datasets: [
+      { label: '$80K reserve target', data: refTarget, borderColor: '#10b981', borderDash: [3, 3], backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 },
+      { label: 'Cash empty', data: refEmpty, borderColor: '#ef4444', borderDash: [3, 3], backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 },
+      { label: 'Cushion (actual)', data: actualPadded, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.18)', fill: true, tension: 0.25 },
+      { label: 'Cushion (projected)', data: projPadded, borderColor: '#f59e0b', borderDash: [6, 4], backgroundColor: 'transparent', fill: false, tension: 0, pointRadius: 2 }
+    ]
   });
 }
 
