@@ -420,7 +420,7 @@ document.querySelectorAll('.tab').forEach(b => {
     b.classList.add('active');
     $('panel-' + b.dataset.tab).classList.add('active');
     if (b.dataset.tab === 'charts' && state.history.length) renderCharts();
-    if (b.dataset.tab === 'savings') loadSavingsRate();
+    if (b.dataset.tab === 'savings') { if (!$('sr-month').value) initSavingsMonth(); loadSavingsRate(); }
   });
 });
 
