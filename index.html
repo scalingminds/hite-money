@@ -17,6 +17,7 @@
     --blue: #3b82f6;
     --amber: #f59e0b;
     --red: #ef4444;
+    --indigo: #6366f1;
     --shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
   }
   * { box-sizing: border-box; }
@@ -45,10 +46,11 @@
   }
   .kpi .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
   .kpi .value { font-size: 24px; font-weight: 600; margin-top: 8px; letter-spacing: -0.01em; }
+  .kpi .value.big { font-size: 38px; }
   .kpi .delta { font-size: 12px; margin-top: 4px; font-weight: 500; }
   .pos { color: #047857; }
   .neg { color: #b91c1c; }
-  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab {
     background: none;
     border: none;
@@ -81,10 +83,10 @@
     margin-bottom: 12px;
     box-shadow: var(--shadow);
   }
-  .form-section h3 { margin: 0 0 12px; font-size: 13px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-section h3 { margin: 0 0 12px; font-size: 13px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: space-between; }
   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
   label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
-  input[type="number"], input[type="text"], input[type="date"] {
+  input[type="number"], input[type="text"], input[type="date"], input[type="month"] {
     width: 100%;
     background: #ffffff;
     border: 1px solid var(--border);
@@ -111,6 +113,19 @@
   button.secondary { background: #ffffff; color: var(--text); border: 1px solid var(--border); }
   button.secondary:hover { background: #f9fafb; }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.link-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  button.link-btn:hover { color: var(--text); }
   .entry-status {
     display: inline-block;
     margin-left: 12px;
@@ -152,9 +167,14 @@
     max-width: 520px;
     width: 90%;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-height: 80vh;
+    overflow-y: auto;
   }
   .modal h2 { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
   .modal p { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .hc-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .hc-row input { flex: 1; }
+  .hc-add-row { display: flex; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
   .toast {
     position: fixed;
     bottom: 24px;
@@ -168,6 +188,7 @@
     opacity: 0;
     transition: opacity 0.2s;
     font-size: 14px;
+    z-index: 200;
   }
   .toast.show { opacity: 1; }
   .toast.error { border-left-color: var(--red); }
@@ -183,10 +204,10 @@
   }
   .settings-link:hover { color: var(--text); background: #ffffff; }
   .form-hint { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+  .sr-empty { padding: 32px; text-align: center; color: var(--muted); }
 </style>
 </head>
 <body>
-
 <header>
   <h1>Hite Money</h1>
   <div>
@@ -194,22 +215,20 @@
     <button class="settings-link" onclick="openSettings()">Settings</button>
   </div>
 </header>
-
 <div class="grid kpis">
-  <div class="kpi"><div class="label">Total Liquid</div><div class="value" id="kpi-liquid">—</div><div class="delta" id="d-liquid"></div></div>
-  <div class="kpi"><div class="label">Cushion (after $80K)</div><div class="value" id="kpi-cushion">—</div><div class="delta" id="d-cushion"></div></div>
-  <div class="kpi"><div class="label">Cash Runway</div><div class="value" id="kpi-runway">—</div></div>
-  <div class="kpi"><div class="label">Full Runway</div><div class="value" id="kpi-full">—</div></div>
-  <div class="kpi"><div class="label">AR (incoming)</div><div class="value" id="kpi-ar">—</div><div class="delta" id="d-ar"></div></div>
-  <div class="kpi"><div class="label">Net Worth</div><div class="value" id="kpi-networth">—</div><div class="delta" id="d-networth"></div></div>
+  <div class="kpi"><div class="label">Total Liquid</div><div class="value" id="kpi-liquid">â</div><div class="delta" id="d-liquid"></div></div>
+  <div class="kpi"><div class="label">Cushion (after $80K)</div><div class="value" id="kpi-cushion">â</div><div class="delta" id="d-cushion"></div></div>
+  <div class="kpi"><div class="label">Cash Runway</div><div class="value" id="kpi-runway">â</div></div>
+  <div class="kpi"><div class="label">Full Runway</div><div class="value" id="kpi-full">â</div></div>
+  <div class="kpi"><div class="label">AR (incoming)</div><div class="value" id="kpi-ar">â</div><div class="delta" id="d-ar"></div></div>
+  <div class="kpi"><div class="label">Net Worth</div><div class="value" id="kpi-networth">â</div><div class="delta" id="d-networth"></div></div>
 </div>
-
 <div class="tabs">
   <button class="tab active" data-tab="charts">Charts</button>
   <button class="tab" data-tab="entry">Update</button>
   <button class="tab" data-tab="history">History</button>
+  <button class="tab" data-tab="savings">Savings Rate</button>
 </div>
-
 <div class="panel active" id="panel-charts">
   <div class="grid charts">
     <div class="chart-card"><h3>Cash Trajectory</h3><div class="chart-wrap"><canvas id="chart-cash"></canvas></div></div>
@@ -219,10 +238,8 @@
     <div class="chart-card"><h3>Runway Projection (Cushion, next 26 weeks)</h3><div class="chart-wrap"><canvas id="chart-runway"></canvas></div></div>
   </div>
 </div>
-
 <div class="panel" id="panel-entry">
-  <p class="form-hint">Update any week. Pick a date — if it exists I'll load it for editing; if not, I'll create it.</p>
-
+  <p class="form-hint">Update any week. Pick a date â if it exists I'll load it for editing; if not, I'll create it.</p>
   <div class="form-section">
     <h3>Entry Date</h3>
     <div class="form-grid">
@@ -232,7 +249,6 @@
       </div>
     </div>
   </div>
-
   <div class="form-section">
     <h3>Personal</h3>
     <div class="form-grid">
@@ -241,7 +257,6 @@
       <div><label>Savings</label><input type="number" id="f-savings" step="0.01"></div>
     </div>
   </div>
-
   <div class="form-section">
     <h3>Business</h3>
     <div class="form-grid">
@@ -252,7 +267,6 @@
       <div><label>AR</label><input type="number" id="f-ar" step="0.01"></div>
     </div>
   </div>
-
   <div class="form-section">
     <h3>Investments (if changed)</h3>
     <div class="form-grid">
@@ -262,7 +276,6 @@
       <div><label>Row College</label><input type="number" id="f-rowCollege" step="0.01"></div>
     </div>
   </div>
-
   <div class="form-section">
     <h3>Loans (if changed)</h3>
     <div class="form-grid">
@@ -270,13 +283,11 @@
       <div><label>SBA 2</label><input type="number" id="f-sba2" step="0.01"></div>
     </div>
   </div>
-
   <div class="actions">
     <button class="secondary" onclick="resetForm()">Reset</button>
     <button onclick="saveWeek()" id="save-btn">Save</button>
   </div>
 </div>
-
 <div class="panel" id="panel-history">
   <p class="form-hint">Click any row to load it into the Update tab.</p>
   <div class="history-wrap">
@@ -286,6 +297,64 @@
       </tr></thead>
       <tbody id="history-body"><tr><td colspan="7" style="text-align:center;color:var(--muted)">Connect to see history</td></tr></tbody>
     </table>
+  </div>
+</div>
+
+<!-- Savings Rate tab -->
+<div class="panel" id="panel-savings">
+  <div class="grid kpis" style="grid-template-columns: 1fr 1fr;">
+    <div class="kpi">
+      <div class="label">Current Month Rate</div>
+      <div class="value big" id="sr-current">â</div>
+      <div class="delta" id="sr-current-month"></div>
+    </div>
+    <div class="kpi">
+      <div class="label">Trailing 12-Month Avg</div>
+      <div class="value big" id="sr-trailing">â</div>
+      <div class="delta" id="sr-trailing-detail"></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom: 12px;">
+    <h3>Savings Rate Trend</h3>
+    <div class="chart-wrap" style="height: 280px;"><canvas id="chart-savings"></canvas></div>
+  </div>
+
+  <div class="form-section">
+    <h3>Add or update a month</h3>
+    <p class="form-hint" style="margin: 0 0 12px;">
+      Rate = (Inflow â Outflow + Hidden Savings + Mortgage Principal) Ã· Inflow.
+      Hidden savings = 401k/Solo 401k/SEP, HSA, Roth/IRA, brokerage deposits â anything Quicken treats as expense that's actually savings.
+    </p>
+    <div class="form-grid">
+      <div><label>Month<span id="sr-status" class="entry-status new">New entry</span></label><input type="month" id="sr-month"></div>
+      <div><label>Total Inflow</label><input type="number" id="sr-inflow" step="0.01" placeholder="0.00"></div>
+      <div><label>Total Outflow</label><input type="number" id="sr-outflow" step="0.01" placeholder="0.00"></div>
+      <div><label>Hidden Savings</label><input type="number" id="sr-hidden" step="0.01" placeholder="0.00"></div>
+      <div><label>Mortgage Principal (optional)</label><input type="number" id="sr-mortgage" step="0.01" placeholder="0.00"></div>
+      <div><label>Notes</label><input type="text" id="sr-notes" placeholder="optional"></div>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="resetSavingsForm()">Reset</button>
+      <button onclick="saveSavingsRate()" id="sr-save-btn">Save</button>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>
+      History
+      <button class="link-btn" onclick="openHiddenCategoriesModal()">Manage hidden-savings categories</button>
+    </h3>
+    <div class="history-wrap" style="margin-top: 4px;">
+      <table id="sr-history-table">
+        <thead><tr>
+          <th>Month</th><th>Inflow</th><th>Outflow</th><th>Hidden</th><th>Mortgage</th><th>Rate</th>
+        </tr></thead>
+        <tbody id="sr-history-body">
+          <tr><td colspan="6" class="sr-empty">No data yet â add a month above.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -301,16 +370,40 @@
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modal-categories">
+  <div class="modal">
+    <h2>Hidden-savings categories</h2>
+    <p>Categories that Quicken treats as expenses but are actually savings (401k contributions, Roth deposits, HSA, brokerage deposits, etc). The app stores these for reference â you still enter the dollar amount manually each month.</p>
+    <div id="hc-list"></div>
+    <div class="hc-add-row">
+      <input type="text" id="hc-new" placeholder="e.g. Solo 401k Contribution" onkeydown="if(event.key==='Enter')addHiddenCategory()">
+      <button class="secondary" onclick="addHiddenCategory()">Add</button>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeHiddenCategoriesModal()">Cancel</button>
+      <button onclick="saveHiddenCategories()">Save</button>
+    </div>
+  </div>
+</div>
 
+<div class="toast" id="toast"></div>
 <script>
 const STORAGE_KEY = 'hite-money-url';
 let state = { url: localStorage.getItem(STORAGE_KEY) || '', latest: null, history: [] };
 let charts = {};
+const SR_STATE = { entries: [], categories: [], loaded: false };
+const SR_FIELDS = ['inflow','outflow','hidden_savings','mortgage_principal_manual','notes'];
 
 const $ = id => document.getElementById(id);
-const fmt = v => v == null || isNaN(v) ? '—' : '$' + Math.round(v).toLocaleString();
-const fmt1 = v => v == null || isNaN(v) ? '—' : Number(v).toFixed(1);
+const fmt = v => v == null || isNaN(v) ? 'â' : '$' + Math.round(v).toLocaleString();
+const fmt1 = v => v == null || isNaN(v) ? 'â' : Number(v).toFixed(1);
+const fmtPct = v => v == null || isNaN(v) ? 'â' : v.toFixed(1) + '%';
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s == null ? '' : String(s);
+  return d.innerHTML;
+}
 
 function toast(msg, isErr) {
   const t = $('toast');
@@ -319,6 +412,7 @@ function toast(msg, isErr) {
   setTimeout(() => t.className = 'toast' + (isErr ? ' error' : ''), 3000);
 }
 
+// ===== Tabs =====
 document.querySelectorAll('.tab').forEach(b => {
   b.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -326,9 +420,11 @@ document.querySelectorAll('.tab').forEach(b => {
     b.classList.add('active');
     $('panel-' + b.dataset.tab).classList.add('active');
     if (b.dataset.tab === 'charts' && state.history.length) renderCharts();
+    if (b.dataset.tab === 'savings') loadSavingsRate();
   });
 });
 
+// ===== Settings =====
 function openSettings() {
   $('settings-url').value = state.url;
   $('modal-settings').classList.add('active');
@@ -343,12 +439,10 @@ function saveSettings() {
   load();
 }
 
+// ===== Main weekly dashboard load =====
 async function load() {
-  if (!state.url) {
-    setStatus(false);
-    return;
-  }
-  setStatus(false, 'Loading…');
+  if (!state.url) { setStatus(false); return; }
+  setStatus(false, 'Loadingâ¦');
   try {
     const res = await fetch(state.url, { method: 'GET' });
     const data = await res.json();
@@ -378,12 +472,11 @@ function renderKPIs() {
   const liquid = (l.asChecking || 0) + (l.savings || 0) + (l.bizChecking || 0);
   $('kpi-liquid').textContent = fmt(liquid);
   $('kpi-cushion').textContent = fmt(l.cushion);
-  $('kpi-runway').textContent = l.br != null ? fmt1(l.br) + ' mo' : '—';
+  $('kpi-runway').textContent = l.br != null ? fmt1(l.br) + ' mo' : 'â';
   const fullRunway = (l.needEightyK + (l.ar || 0)) / 13000;
-  $('kpi-full').textContent = isFinite(fullRunway) ? fmt1(fullRunway) + ' mo' : '—';
+  $('kpi-full').textContent = isFinite(fullRunway) ? fmt1(fullRunway) + ' mo' : 'â';
   $('kpi-ar').textContent = fmt(l.ar);
   $('kpi-networth').textContent = fmt(l.networth);
-
   const filled = state.history.filter(h => h.asChecking != null || h.bizChecking != null);
   if (filled.length >= 2) {
     const prev = filled[filled.length - 2];
@@ -394,11 +487,10 @@ function renderKPIs() {
     setDelta('d-networth', (l.networth || 0) - (prev.networth || 0));
   }
 }
-
 function setDelta(id, v) {
   const el = $(id);
   if (v === 0 || isNaN(v)) { el.textContent = ''; return; }
-  el.textContent = (v > 0 ? '▲ ' : '▼ ') + fmt(Math.abs(v));
+  el.textContent = (v > 0 ? 'â² ' : 'â¼ ') + fmt(Math.abs(v));
   el.className = 'delta ' + (v > 0 ? 'pos' : 'neg');
 }
 
@@ -413,15 +505,12 @@ function renderHistoryTable() {
     const d = new Date(r.date);
     const iso = d.toISOString().slice(0, 10);
     const dStr = (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear().toString().slice(2);
-    return `<tr class="clickable" data-date="${iso}"><td>${dStr}</td><td>${fmt(liquid)}</td><td>${fmt(r.cushion)}</td><td>${fmt(r.needEightyK)}</td><td>${fmt(r.bizTotal)}</td><td>${fmt1(r.br)}</td><td>${fmt(r.ar)}</td></tr>`;
+    return '<tr class="clickable" data-date="' + iso + '"><td>' + dStr + '</td><td>' + fmt(liquid) + '</td><td>' + fmt(r.cushion) + '</td><td>' + fmt(r.needEightyK) + '</td><td>' + fmt(r.bizTotal) + '</td><td>' + fmt1(r.br) + '</td><td>' + fmt(r.ar) + '</td></tr>';
   }).join('');
-  // wire click handlers
   document.querySelectorAll('#history-body tr.clickable').forEach(row => {
     row.addEventListener('click', () => {
-      const iso = row.dataset.date;
-      $('f-date').value = iso;
+      $('f-date').value = row.dataset.date;
       handleDateChange();
-      // jump to entry tab
       document.querySelector('[data-tab="entry"]').click();
     });
   });
@@ -464,13 +553,10 @@ function renderCharts() {
     labels,
     datasets: [{ label: 'Net Worth', data: networth, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.12)', fill: true, tension: 0.25 }]
   });
-
-  // Runway Projection: extend Cushion forward 26 weeks at $13K/month burn (~$3,250/wk)
   const last = filled[filled.length - 1];
   const lastDate = new Date(last.date);
   const lastCushion = last.cushion || 0;
   const weeklyBurn = 13000 / 4.33;
-
   const projLabels = [];
   const projData = [];
   for (let i = 1; i <= 26; i++) {
@@ -484,7 +570,6 @@ function renderCharts() {
   const projPadded = [...new Array(cushion.length - 1).fill(null), lastCushion, ...projData];
   const refTarget = new Array(allLabels.length).fill(0);
   const refEmpty = new Array(allLabels.length).fill(-80000);
-
   drawChart('chart-runway', 'line', {
     labels: allLabels,
     datasets: [
@@ -496,8 +581,9 @@ function renderCharts() {
   });
 }
 
-function drawChart(id, type, data) {
+function drawChart(id, type, data, yFormatter) {
   if (charts[id]) charts[id].destroy();
+  const yTicks = { color: '#667085', callback: yFormatter || (v => '$' + (v / 1000).toFixed(0) + 'k') };
   charts[id] = new Chart($(id), {
     type, data,
     options: {
@@ -505,24 +591,23 @@ function drawChart(id, type, data) {
       plugins: { legend: { labels: { color: '#101828' } } },
       scales: {
         x: { ticks: { color: '#667085' }, grid: { color: '#eef0f3' } },
-        y: { ticks: { color: '#667085', callback: v => '$' + (v/1000).toFixed(0) + 'k' }, grid: { color: '#eef0f3' } }
+        y: { ticks: yTicks, grid: { color: '#eef0f3' } }
       }
     }
   });
 }
 
+// ===== Weekly entry form =====
 function initEntryDate() {
   const today = new Date();
   $('f-date').value = today.toISOString().slice(0, 10);
   handleDateChange();
 }
-
 $('f-date').addEventListener('change', handleDateChange);
-
 function handleDateChange() {
   const iso = $('f-date').value;
   if (!iso) return;
-  const target = new Date(iso + 'T12:00:00'); // noon to dodge tz
+  const target = new Date(iso + 'T12:00:00');
   const match = state.history.find(h => {
     const d = new Date(h.date);
     return d.getUTCFullYear() === target.getUTCFullYear() &&
@@ -537,7 +622,6 @@ function handleDateChange() {
     $('entry-status').className = 'entry-status update';
     $('save-btn').textContent = 'Update';
   } else {
-    // pre-fill with most recent filled row to make it easy to nudge
     const last = state.latest;
     fields.forEach(f => $('f-' + f).value = last && last[f] != null ? last[f] : '');
     $('entry-status').textContent = 'New entry';
@@ -545,7 +629,6 @@ function handleDateChange() {
     $('save-btn').textContent = 'Save';
   }
 }
-
 function resetForm() { handleDateChange(); }
 
 async function saveWeek() {
@@ -572,6 +655,267 @@ async function saveWeek() {
     toast('Save failed: ' + err.message, true);
   } finally {
     $('save-btn').disabled = false;
+  }
+}
+
+// ===== Savings Rate (Module 1) =====
+async function loadSavingsRate() {
+  if (!state.url) { toast('Connect first', true); return; }
+  try {
+    const res = await fetch(state.url + '?module=savings_rate', { method: 'GET' });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Bad response');
+    if (!Array.isArray(data.entries)) {
+      toast('Savings Rate backend not deployed yet â update Apps Script', true);
+      return;
+    }
+    SR_STATE.entries = data.entries || [];
+    SR_STATE.categories = data.hiddenCategories || [];
+    SR_STATE.loaded = true;
+    renderSavingsKPIs();
+    renderSavingsChart();
+    renderSavingsHistory();
+    if (!$('sr-month').value) initSavingsMonth();
+  } catch (err) {
+    toast('Savings load failed: ' + err.message, true);
+  }
+}
+
+function srRateColor(rate) {
+  if (rate == null || isNaN(rate)) return '';
+  if (rate < 10) return 'var(--red)';
+  if (rate < 20) return 'var(--amber)';
+  return 'var(--accent)';
+}
+
+function renderSavingsKPIs() {
+  const entries = SR_STATE.entries;
+  if (!entries.length) {
+    $('sr-current').textContent = 'â';
+    $('sr-current').style.color = '';
+    $('sr-current-month').textContent = '';
+    $('sr-trailing').textContent = 'â';
+    $('sr-trailing').style.color = '';
+    $('sr-trailing-detail').textContent = '';
+    return;
+  }
+  const latest = entries[entries.length - 1];
+  const rate = latest.savings_rate_pct;
+  $('sr-current').textContent = fmtPct(rate);
+  $('sr-current').style.color = srRateColor(rate);
+  $('sr-current-month').textContent = latest.month;
+
+  const last12 = entries.slice(-12);
+  const avg = last12.reduce((s, e) => s + e.savings_rate_pct, 0) / last12.length;
+  $('sr-trailing').textContent = fmtPct(avg);
+  $('sr-trailing').style.color = srRateColor(avg);
+  $('sr-trailing-detail').textContent = last12.length < 12
+    ? 'based on ' + last12.length + ' month' + (last12.length === 1 ? '' : 's')
+    : 'last 12 months';
+}
+
+function renderSavingsChart() {
+  const entries = SR_STATE.entries.slice(-36);
+  const canvas = $('chart-savings');
+  if (!entries.length) {
+    if (charts['chart-savings']) { charts['chart-savings'].destroy(); delete charts['chart-savings']; }
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+  const labels = entries.map(e => e.month);
+  const rates = entries.map(e => e.savings_rate_pct);
+  const refLow = new Array(labels.length).fill(10);
+  const refHigh = new Array(labels.length).fill(20);
+
+  if (charts['chart-savings']) charts['chart-savings'].destroy();
+  charts['chart-savings'] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '20% strong', data: refHigh, borderColor: '#10b981', borderDash: [3, 3], backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 },
+        { label: '10% floor', data: refLow, borderColor: '#ef4444', borderDash: [3, 3], backgroundColor: 'transparent', fill: false, pointRadius: 0, tension: 0 },
+        { label: 'Savings rate', data: rates, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.15)', fill: true, tension: 0.25, pointRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#101828' } } },
+      scales: {
+        x: { ticks: { color: '#667085' }, grid: { color: '#eef0f3' } },
+        y: {
+          ticks: { color: '#667085', callback: v => v.toFixed(0) + '%' },
+          grid: { color: '#eef0f3' },
+          suggestedMin: 0,
+          suggestedMax: 50
+        }
+      }
+    }
+  });
+}
+
+function renderSavingsHistory() {
+  const tbody = $('sr-history-body');
+  if (!SR_STATE.entries.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="sr-empty">No data yet â add a month above.</td></tr>';
+    return;
+  }
+  const rows = SR_STATE.entries.slice().reverse();
+  tbody.innerHTML = rows.map(e => {
+    const color = srRateColor(e.savings_rate_pct);
+    return '<tr class="clickable" data-month="' + escapeHtml(e.month) + '">' +
+      '<td>' + escapeHtml(e.month) + '</td>' +
+      '<td>' + fmt(e.inflow) + '</td>' +
+      '<td>' + fmt(e.outflow) + '</td>' +
+      '<td>' + fmt(e.hidden_savings) + '</td>' +
+      '<td>' + fmt(e.mortgage_principal_manual) + '</td>' +
+      '<td style="color:' + color + '; font-weight:600;">' + fmtPct(e.savings_rate_pct) + '</td>' +
+      '</tr>';
+  }).join('');
+  document.querySelectorAll('#sr-history-body tr.clickable').forEach(row => {
+    row.addEventListener('click', () => loadSavingsMonthIntoForm(row.dataset.month));
+  });
+}
+
+function initSavingsMonth() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  $('sr-month').value = y + '-' + m;
+  handleSavingsMonthChange();
+}
+
+$('sr-month').addEventListener('change', handleSavingsMonthChange);
+function handleSavingsMonthChange() {
+  const month = $('sr-month').value;
+  if (!month) return;
+  const match = SR_STATE.entries.find(e => e.month === month);
+  if (match) {
+    $('sr-inflow').value = match.inflow || '';
+    $('sr-outflow').value = match.outflow || '';
+    $('sr-hidden').value = match.hidden_savings || '';
+    $('sr-mortgage').value = match.mortgage_principal_manual || '';
+    $('sr-notes').value = match.notes || '';
+    $('sr-status').textContent = 'Updating existing';
+    $('sr-status').className = 'entry-status update';
+    $('sr-save-btn').textContent = 'Update';
+  } else {
+    $('sr-inflow').value = '';
+    $('sr-outflow').value = '';
+    $('sr-hidden').value = '';
+    $('sr-mortgage').value = '';
+    $('sr-notes').value = '';
+    $('sr-status').textContent = 'New entry';
+    $('sr-status').className = 'entry-status new';
+    $('sr-save-btn').textContent = 'Save';
+  }
+}
+
+function loadSavingsMonthIntoForm(month) {
+  $('sr-month').value = month;
+  handleSavingsMonthChange();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetSavingsForm() {
+  initSavingsMonth();
+}
+
+async function saveSavingsRate() {
+  if (!state.url) { toast('Connect first', true); return; }
+  const month = $('sr-month').value;
+  if (!month) { toast('Pick a month', true); return; }
+  if (!/^\d{4}-\d{2}$/.test(month)) { toast('Month must be YYYY-MM', true); return; }
+  const inflow = parseFloat($('sr-inflow').value);
+  if (!inflow || inflow <= 0) { toast('Inflow must be > 0', true); return; }
+
+  const body = {
+    module: 'savings_rate',
+    action: 'save_entry',
+    month,
+    inflow,
+    outflow: parseFloat($('sr-outflow').value) || 0,
+    hidden_savings: parseFloat($('sr-hidden').value) || 0,
+    mortgage_principal_manual: parseFloat($('sr-mortgage').value) || 0,
+    notes: $('sr-notes').value || ''
+  };
+
+  $('sr-save-btn').disabled = true;
+  try {
+    const res = await fetch(state.url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Save failed');
+    toast('Saved â rate ' + fmtPct(data.savings_rate_pct));
+    await loadSavingsRate();
+  } catch (err) {
+    toast('Save failed: ' + err.message, true);
+  } finally {
+    $('sr-save-btn').disabled = false;
+  }
+}
+
+// ===== Hidden-savings categories modal =====
+function openHiddenCategoriesModal() {
+  if (!SR_STATE.loaded) { toast('Open the Savings Rate tab first to load data', true); return; }
+  renderHiddenCategoriesList();
+  $('hc-new').value = '';
+  $('modal-categories').classList.add('active');
+}
+function closeHiddenCategoriesModal() { $('modal-categories').classList.remove('active'); }
+
+function renderHiddenCategoriesList() {
+  const list = $('hc-list');
+  if (!SR_STATE.categories.length) {
+    list.innerHTML = '<p class="form-hint" style="margin:0 0 4px;">No categories yet. Add the ones Quicken treats as expense (401k, Roth, HSA, brokerage deposits, etc).</p>';
+    return;
+  }
+  list.innerHTML = SR_STATE.categories.map((c, i) =>
+    '<div class="hc-row"><input type="text" value="' + escapeHtml(c) + '" data-i="' + i + '"><button class="secondary" data-remove="' + i + '">Remove</button></div>'
+  ).join('');
+  document.querySelectorAll('#hc-list button[data-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      SR_STATE.categories.splice(parseInt(btn.dataset.remove), 1);
+      renderHiddenCategoriesList();
+    });
+  });
+  document.querySelectorAll('#hc-list input[data-i]').forEach(input => {
+    input.addEventListener('input', () => {
+      SR_STATE.categories[parseInt(input.dataset.i)] = input.value;
+    });
+  });
+}
+
+function addHiddenCategory() {
+  const v = $('hc-new').value.trim();
+  if (!v) return;
+  if (SR_STATE.categories.includes(v)) { toast('Already in the list', true); return; }
+  SR_STATE.categories.push(v);
+  $('hc-new').value = '';
+  renderHiddenCategoriesList();
+}
+
+async function saveHiddenCategories() {
+  if (!state.url) { toast('Connect first', true); return; }
+  const inputs = document.querySelectorAll('#hc-list input[type="text"]');
+  const cats = Array.from(inputs).map(i => i.value.trim()).filter(v => v);
+  try {
+    const res = await fetch(state.url, {
+      method: 'POST',
+      body: JSON.stringify({ module: 'savings_rate', action: 'save_categories', categories: cats }),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Save failed');
+    SR_STATE.categories = data.categories || [];
+    toast('Categories saved');
+    closeHiddenCategoriesModal();
+  } catch (err) {
+    toast('Save failed: ' + err.message, true);
   }
 }
 
